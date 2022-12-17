@@ -1,19 +1,18 @@
-// create an IIFE
 (() => {
-  const canvas = document.getElementById('canvas-background');
-  // get the rendering context for the canvas
-  const context = canvas.getContext('2d');
+  const canvas = document.getElementById('canvas-background'); // gets a reference to the HTML <canvas> element
+  const context = canvas.getContext('2d'); // get the rendering context for the canvas
 
+  // get document's width and height
   const width = window.innerWidth;
   const height = window.innerHeight;
+
+  // set background to be fullscreen
+  canvas.width = width;
+  canvas.height = height;
 
   const numOfStars = 50;
   // helper function for generating random numbers between two values
   const random = (min, max) => Math.random() * (max - min) + min;
-
-  // Set background to be fullscreen
-  canvas.width = width;
-  canvas.height = height;
 
   const drawBackground = () => {
     // The inner circle is at x=0, y=0, with radius=height
@@ -39,25 +38,6 @@
     context.fillRect(0, height * 0.955, width, height);
   };
 
-  const drawSanta = () => {
-    const image = new Image();
-    image.src = './assets/santa.png';
-
-    // Draw when image has loaded
-    image.onload = function () {
-      /**
-       * this - references the image object
-       * draw at 95% of the width of the canvas - the width of the image
-       * draw at 95,5% of the height of the canvas - the height of the image
-       */
-      context.drawImage(
-        this,
-        width * 0.95 - this.width,
-        height * 0.955 - this.height
-      );
-    };
-  };
-
   const drawStars = () => {
     let countOfStars = numOfStars;
 
@@ -74,6 +54,5 @@
 
   drawBackground();
   drawForeground();
-  drawSanta();
   drawStars();
 })();

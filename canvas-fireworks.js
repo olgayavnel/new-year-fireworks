@@ -1,23 +1,33 @@
 (() => {
-  const canvas = document.getElementById('fireworks');
-  const context = canvas.getContext('2d');
+  const canvas = document.getElementById('canvas-fireworks'); // gets a reference to the HTML <canvas> element
+  const context = canvas.getContext('2d'); // get the rendering context for the canvas
 
+  // get document's width and height
   const width = window.innerWidth;
   const height = window.innerHeight;
+
+  // set background to be fullscreen
+  canvas.width = width;
+  canvas.height = height;
 
   const positions = {
     mouseX: 0,
     mouseY: 0,
-    wandX: 0,
-    wandY: 0,
+    popperX: 0,
+    popperY: 0,
   };
 
   const fireworks = [];
   const flecks = [];
-  const numberOfFlecks = 50; //  bear in mind: performance gets worse with higher number of flecks
+  const flecks2 = [];
+  const flecks3 = [];
+  const numberOfFlecks = 25; //  bear in mind: performance gets worse with higher number of flecks
 
   const random = (min, max) => Math.random() * (max - min) + min;
 
+  // calculate the distance between two points
+  // using Pythagorean theorem
+  // d = √x² + y², where x = x1 - x2, and y = y1 - y2
   const getDistance = (x1, y1, x2, y2) => {
     const xDistance = x1 - x2;
     const yDistance = y1 - y2;
@@ -26,50 +36,29 @@
   };
 
   let mouseClicked = false;
-  let mouseEnter = false;
 
-  const image = new Image();
+  const popperImage = new Image();
 
-  canvas.width = width;
-  canvas.height = height;
+  popperImage.src = './assets/popper.png';
 
-  image.src = './assets/celebrate.png';
-
-  // helper function for removing text on mouse leave
-  function clear() {
-    context.clearRect(0, 0, width, height);
-  }
-
-  function write() {
-    context.font = '30px Roboto';
-    context.fillStyle = '#FEBE10';
-    context.fillText('Ho Ho Ho!', width / 2, 90);
-  }
-
-  function drawText() {
-    write();
-    setTimeout(function () {
-      clear();
-    }, 1000);
-  }
-
-  const drawWand = () => {
-    // get the position for the wand on the canvas
-    positions.wandX = width * 0.955 - image.width;
-    positions.wandY = height * 0.975 - image.height;
+  const drawPopper = () => {
+    // get the position for the popper on the canvas
+    positions.popperX = width * 0.51;
+    positions.popperY = height * 0.95 - popperImage.height;
 
     const rotationInRadians =
       Math.atan2(
-        positions.mouseY - positions.wandY,
-        positions.mouseX - positions.wandX
+        positions.mouseY - positions.popperY,
+        positions.mouseX - positions.popperX
       ) - Math.PI;
+
     const rotationInDegrees = (rotationInRadians * 180) / Math.PI + 360;
 
     context.clearRect(0, 0, width, height);
 
     // save context to remove transformation afterwards
     context.save();
-    context.translate(positions.wandX, positions.wandY);
+    context.translate(positions.popperX, positions.popperY);
 
     if (rotationInDegrees > 0 && rotationInDegrees < 90) {
       context.rotate((rotationInDegrees * Math.PI) / 180); // need to convert back to radians
@@ -77,7 +66,7 @@
       context.rotate((90 * Math.PI) / 180); // cap rotation at 90° if it the cursor goes beyond 90°
     }
 
-    context.drawImage(image, -image.width, -image.height / 2); // need to position anchor to right-middle part of the image
+    context.drawImage(popperImage, -popperImage.width, -popperImage.height / 2); // need to position anchor to right-middle part of the popperImage
 
     context.restore();
   };
@@ -92,19 +81,12 @@
 
     canvas.addEventListener('mousedown', () => (mouseClicked = true));
     canvas.addEventListener('mouseup', () => (mouseClicked = false));
-    canvas.addEventListener('mouseenter', () => (mouseEnter = true));
-    canvas.addEventListener('mouseleave', () => (mouseEnter = false));
   };
 
   // call the loop function indefinitely and redraw the screen every frame
   const loop = () => {
     requestAnimationFrame(loop);
-    drawWand();
-
-    if (mouseEnter) {
-      drawText();
-    }
-
+    drawPopper();
     if (mouseClicked) {
       fireworks.push(new Firework());
     }
@@ -118,9 +100,19 @@
     while (fleckIndex--) {
       flecks[fleckIndex].draw(fleckIndex);
     }
+
+    let fleckIndex2 = flecks2.length;
+    while (fleckIndex2--) {
+      flecks2[fleckIndex2].draw(fleckIndex2);
+    }
+
+    let fleckIndex3 = flecks3.length;
+    while (fleckIndex3--) {
+      flecks3[fleckIndex3].draw(fleckIndex3);
+    }
   };
 
-  image.onload = () => {
+  popperImage.onload = () => {
     attachEventListeners();
     loop();
   };
@@ -130,25 +122,29 @@
       const init = () => {
         let fireworkLength = 8;
 
-        this.x = positions.wandX - 30;
-        this.y = positions.wandY - 50;
-        this.tx = positions.mouseX;
-        this.ty = positions.mouseY;
+        // current coordinates
+        this.x = positions.popperX;
+        this.y = positions.popperY;
 
+        // target coordinates
+        this.target_x = positions.mouseX;
+        this.target_y = positions.mouseY;
+
+        // distance from starting point to target
         this.distanceToTarget = getDistance(
-          positions.wandX,
-          positions.wandY,
-          this.tx,
-          this.ty
+          this.x,
+          this.y,
+          this.target_x,
+          this.target_y
         );
         this.distanceTraveled = 0;
 
         this.coordinates = [];
         this.angle = Math.atan2(
-          this.ty - positions.wandY,
-          this.tx - positions.wandX
+          this.target_y - positions.popperY,
+          this.target_x - positions.popperX
         );
-        this.speed = 20;
+        this.speed = 40;
         this.friction = 0.99;
         this.hue = random(0, 360);
 
@@ -167,8 +163,8 @@
         let vy = Math.sin(this.angle) * this.speed;
 
         this.distanceTraveled = getDistance(
-          positions.wandX,
-          positions.wandY,
+          positions.popperX,
+          positions.popperY,
           this.x + vx,
           this.y + vy
         );
@@ -177,7 +173,9 @@
           let i = numberOfFlecks;
 
           while (i--) {
-            flecks.push(new Fleck(this.tx, this.ty));
+            flecks.push(new Fleck(this.target_x, this.target_y));
+            flecks2.push(new Fleck(this.target_x + 50, this.target_y - 50));
+            flecks3.push(new Fleck(this.target_x - 100, this.target_y - 100));
           }
 
           fireworks.splice(index, 1);
@@ -194,9 +192,6 @@
           this.coordinates[this.coordinates.length - 1][1]
         );
         context.lineTo(this.x, this.y);
-
-        context.strokeStyle = `hsl(${this.hue}, 100%, 50%)`;
-        context.stroke();
 
         this.animate(index);
       };
@@ -242,6 +237,8 @@
 
         if (this.alpha <= this.decay) {
           flecks.splice(index, 1);
+          flecks2.splice(index, 1);
+          flecks3.splice(index, 1);
         }
       };
 
