@@ -1,4 +1,5 @@
 (() => {
+  // Generic Canvas Setup
   const canvas = document.getElementById('canvas-background'); // gets a reference to the HTML <canvas> element
   const context = canvas.getContext('2d'); // get the rendering context for the canvas
 
@@ -10,10 +11,12 @@
   canvas.width = width;
   canvas.height = height;
 
+  // Variables and helper functions
   const numOfStars = 50;
   // helper function for generating random numbers between two values
   const random = (min, max) => Math.random() * (max - min) + min;
 
+  // Main Functionality
   const drawBackground = () => {
     // The inner circle is at x=0, y=0, with radius=height
     // The outer circle is at x=0, y=0, with radius=width

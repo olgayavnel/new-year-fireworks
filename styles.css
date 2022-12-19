@@ -6,7 +6,7 @@ body {
   padding: 0;
   overflow: hidden;
   font-family: 'Pacifico', cursive;
-  color: white;
+  color: #fff;
 }
 
 h1,
@@ -30,6 +30,8 @@ p {
 h1 {
   z-index: 2;
   text-transform: uppercase;
+  font-size: 6vw;
+  padding: 0 1rem;
   background-image: linear-gradient(
     to right top,
     #ffff34,
@@ -41,15 +43,7 @@ h1 {
   background-size: 50% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 6vw;
   animation: gradientAnimation 7.5s ease alternate infinite;
-}
-
-p {
-  text-transform: uppercase;
-  z-index: 2;
-  font-size: 1.5vw;
-  font-family: 'Work Sans', sans-serif;
 }
 
 @keyframes gradientAnimation {
@@ -58,10 +52,24 @@ p {
   }
 }
 
+p {
+  z-index: 2;
+  text-transform: uppercase;
+  font-size: 1.5vw;
+  font-family: 'Work Sans', sans-serif;
+}
+
 img {
   z-index: 1;
   bottom: 5%;
-  left: 50%;
+}
+
+.image-container {
+  display: flex;
+  z-index: 1;
+  height: 20%;
+  width: 100%;
+  justify-content: center;
 }
 
 img,

@@ -1,4 +1,5 @@
 (() => {
+  // Generic Canvas Setup
   const canvas = document.getElementById('canvas-fireworks'); // gets a reference to the HTML <canvas> element
   const context = canvas.getContext('2d'); // get the rendering context for the canvas
 
@@ -13,10 +14,11 @@
   const positions = {
     mouseX: 0,
     mouseY: 0,
-    popperX: 0,
-    popperY: 0,
+    anchorX: 0,
+    anchorY: 0,
   };
 
+  // Variables and helper functions
   const fireworks = [];
   const flecks = [];
   const flecks2 = [];
@@ -37,56 +39,39 @@
 
   let mouseClicked = false;
 
-  const popperImage = new Image();
-
-  popperImage.src = './assets/popper.png';
-
-  const drawPopper = () => {
-    // get the position for the popper on the canvas
-    positions.popperX = width * 0.51;
-    positions.popperY = height * 0.95 - popperImage.height;
-
-    const rotationInRadians =
-      Math.atan2(
-        positions.mouseY - positions.popperY,
-        positions.mouseX - positions.popperX
-      ) - Math.PI;
-
-    const rotationInDegrees = (rotationInRadians * 180) / Math.PI + 360;
+  // Main Functionality
+  const drawAnchor = () => {
+    // get the position for the anchor on the canvas
+    positions.anchorX = width / 2;
+    positions.anchorY = height * 0.9;
 
     context.clearRect(0, 0, width, height);
 
     // save context to remove transformation afterwards
     context.save();
-    context.translate(positions.popperX, positions.popperY);
 
-    if (rotationInDegrees > 0 && rotationInDegrees < 90) {
-      context.rotate((rotationInDegrees * Math.PI) / 180); // need to convert back to radians
-    } else if (rotationInDegrees > 90 && rotationInDegrees < 275) {
-      context.rotate((90 * Math.PI) / 180); // cap rotation at 90° if it the cursor goes beyond 90°
-    }
+    context.translate(positions.anchorX, positions.anchorY);
 
-    context.drawImage(popperImage, -popperImage.width, -popperImage.height / 2); // need to position anchor to right-middle part of the popperImage
-
+    // restores the empty context state
     context.restore();
   };
 
-  // listen to the mousemove event and
-  // set the mouse positions to the correct coordinates
   const attachEventListeners = () => {
+    // listen to the mousemove event and
+    // set the mouse positions to the correct coordinates
     canvas.addEventListener('mousemove', (e) => {
       positions.mouseX = e.pageX;
       positions.mouseY = e.pageY;
     });
 
+    // track mouse click events
     canvas.addEventListener('mousedown', () => (mouseClicked = true));
     canvas.addEventListener('mouseup', () => (mouseClicked = false));
   };
 
-  // call the loop function indefinitely and redraw the screen every frame
   const loop = () => {
-    requestAnimationFrame(loop);
-    drawPopper();
+    requestAnimationFrame(loop); // call the loop function indefinitely and redraw the screen every frame
+    drawAnchor();
     if (mouseClicked) {
       fireworks.push(new Firework());
     }
@@ -112,19 +97,20 @@
     }
   };
 
-  popperImage.onload = () => {
+  window.addEventListener('load', () => {
     attachEventListeners();
     loop();
-  };
+  });
 
+  // classes
   class Firework {
     constructor() {
       const init = () => {
         let fireworkLength = 8;
 
         // current coordinates
-        this.x = positions.popperX;
-        this.y = positions.popperY;
+        this.x = positions.anchorX;
+        this.y = positions.anchorY;
 
         // target coordinates
         this.target_x = positions.mouseX;
@@ -141,10 +127,10 @@
 
         this.coordinates = [];
         this.angle = Math.atan2(
-          this.target_y - positions.popperY,
-          this.target_x - positions.popperX
+          this.target_y - positions.anchorY,
+          this.target_x - positions.anchorX
         );
-        this.speed = 40;
+        this.speed = 15;
         this.friction = 0.99;
         this.hue = random(0, 360);
 
@@ -159,14 +145,14 @@
 
         this.speed *= this.friction;
 
-        let vx = Math.cos(this.angle) * this.speed;
-        let vy = Math.sin(this.angle) * this.speed;
+        let velocity_x = Math.cos(this.angle) * this.speed;
+        let velocity_y = Math.sin(this.angle) * this.speed;
 
         this.distanceTraveled = getDistance(
-          positions.popperX,
-          positions.popperY,
-          this.x + vx,
-          this.y + vy
+          positions.anchorX,
+          positions.anchorY,
+          this.x + velocity_x,
+          this.y + velocity_y
         );
 
         if (this.distanceTraveled >= this.distanceToTarget) {
@@ -180,8 +166,8 @@
 
           fireworks.splice(index, 1);
         } else {
-          this.x += vx;
-          this.y += vy;
+          this.x += velocity_x;
+          this.y += velocity_y;
         }
       };
 
@@ -192,6 +178,9 @@
           this.coordinates[this.coordinates.length - 1][1]
         );
         context.lineTo(this.x, this.y);
+
+        context.strokeStyle = `hsl(${this.hue}, 100%, 50%)`;
+        context.stroke();
 
         this.animate(index);
       };
